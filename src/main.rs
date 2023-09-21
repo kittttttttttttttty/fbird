@@ -6,7 +6,7 @@ const WIDTH: usize = 1400;
 const HEIGHT: usize = 850;
 const OFFSCREEN_OFFSET: f32 = 1000.0; // Increase this value to increase the range of random x-coordinates
 const GAP_HEIGHT: f32 = 200.0; // The height of the gap between the upper and lower tubes
-const NUM_PIPES: usize = 100; // The number of pipes
+const NUM_PIPES: usize = 10; // The number of pipes
 const PIPE_DISTANCE: f32 = 30.0; // The minimum distance between each pair of pipes
 
 struct Pipe {
