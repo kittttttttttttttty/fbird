@@ -6,8 +6,8 @@ const WIDTH: usize = 1400;
 const HEIGHT: usize = 850;
 const OFFSCREEN_OFFSET: f32 = 1000.0; // Increase this value to increase the range of random x-coordinates
 const GAP_HEIGHT: f32 = 200.0; // The height of the gap between the upper and lower tubes
-const NUM_PIPES: usize = 27; // The number of pipes
-const PIPE_DISTANCE: f32 = 30.0; // The minimum distance between each pair of pipes
+const NUM_PIPES: usize = 5; // The number of pipes
+const PIPE_DISTANCE: f32 = 500.0; // The minimum distance between each pair of pipes
 
 struct Pipe {
     x: f32,
@@ -26,41 +26,50 @@ fn main() {
 
     // Initialize the pipes with random x-coordinates and gap positions
     let mut pipes: Vec<Pipe> = Vec::new();
-    let mut last_x = 0.0;
-    for _ in 0..NUM_PIPES {
-        let x = if last_x + PIPE_DISTANCE < WIDTH as f32 + OFFSCREEN_OFFSET {
-            rng.gen_range(last_x + PIPE_DISTANCE..WIDTH as f32 + OFFSCREEN_OFFSET)
-        } else {
-            WIDTH as f32 + OFFSCREEN_OFFSET
-        };
-        let gap_y = rng.gen_range(GAP_HEIGHT..HEIGHT as f32 - GAP_HEIGHT);
-        pipes.push(Pipe { x, gap_y });
-        last_x = x;
-    }
+        for i in 0..NUM_PIPES {
+            let x = WIDTH as f32 + OFFSCREEN_OFFSET + i as f32 * PIPE_DISTANCE;
+            let gap_y = rng.gen_range(GAP_HEIGHT..HEIGHT as f32 - GAP_HEIGHT);
+            pipes.push(Pipe { x, gap_y });
+        }
 
     let pipes_len = pipes.len() as f32; // Store the length of the pipes vector
 
-    loop {
+    loop { 
         for i in (0..pipes.len()).rev() {
             pipes[i].x -= 10.0; // Decrement x in each iteration to move the tubes to the left
-
-            // If the tubes have reached the left edge of the window, reset x to a random x-coordinate off the right edge of the screen
+        
+            // If the tubes have reached the left edge of the window, reset x to a fixed x-coordinate off the right edge of the screen
             // and generate a new random y-coordinate for the gap
             if pipes[i].x + 100.0 < 0.0 {
-                pipes[i].x = rng.gen_range(WIDTH as f32..WIDTH as f32 + OFFSCREEN_OFFSET) + pipes_len * PIPE_DISTANCE;
+                pipes[i].x = WIDTH as f32 + OFFSCREEN_OFFSET;
                 pipes[i].gap_y = rng.gen_range(GAP_HEIGHT..HEIGHT as f32 - GAP_HEIGHT);
             }
-
-            // Check if this pipe is touching any other pipe
-            for j in 0..pipes.len() {
-                if i != j && (pipes[i].x - pipes[j].x).abs() < PIPE_DISTANCE {
-                    // If it is, remove this pipe
-                    pipes.remove(i);
-                    break;
+            if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Discard) {
+                // Convert the mouse position to integer coordinates
+                let mouse_x = mouse_x as usize;
+                let mouse_y = mouse_y as usize;
+        
+                // Check if the mouse is within the window bounds
+                if mouse_x < WIDTH && mouse_y < HEIGHT {
+                    // Get the color of the pixel at the mouse's current position
+                    let pixel_color = dt.get_data()[(mouse_y * WIDTH + mouse_x) as usize];
+        
+                    // Extract the green component of the pixel color
+                    let green = (pixel_color >> 8) & 0xff;
+        
+                    // Check if the mouse is within the bounds of any of the pipes
+                    for pipe in &pipes {
+                        if mouse_x >= pipe.x as usize && mouse_x <= (pipe.x + 100.0) as usize &&
+                           (mouse_y <= (pipe.gap_y - GAP_HEIGHT / 2.0) as usize || mouse_y >= (pipe.gap_y + GAP_HEIGHT / 2.0) as usize) {
+                            // If it is, and the green component is greater than a certain threshold, abort the process
+                            if green > 230 {
+                                std::process::abort();
+                            }
+                        }
+                    }
                 }
             }
         }
-
         dt.clear(SolidSource::from_unpremultiplied_argb(0xff, 0xff, 0xff, 0xff));
         let mut pb = PathBuilder::new(); // Initialize pb
 
