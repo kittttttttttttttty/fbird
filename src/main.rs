@@ -32,8 +32,6 @@ fn main() {
             pipes.push(Pipe { x, gap_y });
         }
 
-    let pipes_len = pipes.len() as f32; // Store the length of the pipes vector
-
     loop { 
         for i in (0..pipes.len()).rev() {
             pipes[i].x -= 10.0; // Decrement x in each iteration to move the tubes to the left
