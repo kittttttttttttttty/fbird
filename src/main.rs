@@ -15,7 +15,7 @@ struct Pipe {
 }
 
 fn main() {
-    let mut window = Window::new("Test", WIDTH, HEIGHT, WindowOptions {
+    let mut window = Window::new("Fbird", WIDTH, HEIGHT, WindowOptions {
         ..WindowOptions::default()
     }).unwrap();
 
